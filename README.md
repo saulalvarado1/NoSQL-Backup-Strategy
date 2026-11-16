@@ -37,6 +37,16 @@ MONGODB_URI=mongodb://localhost:27017 DB_NAME=tienda_restaurada npm run restore
 MONGODB_URI=mongodb://localhost:27017 npm test
 ```
 
+### Problema conocido en Windows: `querySrv ECONNREFUSED`
+
+Si al conectar a Atlas con `mongodb+srv://` aparece `querySrv ECONNREFUSED`, Node está usando un DNS local que no responde consultas SRV. Solución para la sesión actual de PowerShell:
+
+```powershell
+Set-Content dns.js "require('dns').setServers(['8.8.8.8','1.1.1.1']);"
+$env:NODE_OPTIONS = "--require ./dns.js"
+npm run seed
+```
+
 ## Endpoints
 
 | Método | Ruta | Descripción |
