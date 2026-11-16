@@ -23,7 +23,7 @@ cifrado AES-256, retención y despliegue continuo con GitHub Actions + Render + 
 
 Artículo: <ENLACE_ARTICULO>
 Repositorio: https://github.com/saulalvarado1/NoSQL-Backup-Strategy
-App: <ENLACE_APP>
+App: https://nosql-backup-strategy-d819.onrender.com
 ```
 
 ## Comandos para la demo de desastre

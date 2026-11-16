@@ -6,7 +6,7 @@ tags: mongodb, nosql, backup, devops
 # Estrategia de Backup para Bases de Datos NoSQL: MongoDB Atlas + GitHub Actions + Render
 
 > **Repositorio:** https://github.com/saulalvarado1/NoSQL-Backup-Strategy
-> **App desplegada:** https://nosql-backup-strategy.onrender.com
+> **App desplegada:** https://nosql-backup-strategy-d819.onrender.com
 > **Video (≤ 5 min):** https://youtu.be/XXXXXXXXXXX
 > **Autor(a):** NOMBRE — Curso de Base de Datos II
 

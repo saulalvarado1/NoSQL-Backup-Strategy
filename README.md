@@ -62,7 +62,7 @@ npm run seed
 2. **Render**: *New → Blueprint* → seleccionar este repositorio (usa `render.yaml`). Ingresar `MONGODB_URI`. En *Settings → Deploy Hook* copiar la URL.
 3. **GitHub → Settings → Secrets and variables → Actions**:
    - Secrets: `MONGODB_URI`, `RENDER_DEPLOY_HOOK`, `BACKUP_PASSPHRASE`
-   - Variables: `APP_URL` (p. ej. `https://nosql-backup-strategy.onrender.com`)
+   - Variables: `APP_URL` (p. ej. `https://nosql-backup-strategy-d819.onrender.com`)
 4. Hacer `git push` a `main` → el workflow **CI/CD** prueba, construye y despliega.
 5. En la pestaña *Actions* ejecutar **Backup programado de MongoDB** con *Run workflow* (luego corre solo cada día).
 

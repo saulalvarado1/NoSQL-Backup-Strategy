@@ -4,5 +4,5 @@ Integrante: NOMBRE COMPLETO
 1. Artículo (Medium / Dev.to / Hashnode): PEGAR_ENLACE_ARTICULO
 2. Repositorio público (GitHub):            https://github.com/saulalvarado1/NoSQL-Backup-Strategy
 3. Despliegue automatizado (GitHub Actions): https://github.com/saulalvarado1/NoSQL-Backup-Strategy/actions
-4. App publicada en la nube (Render):       PEGAR_ENLACE_APP
+4. App publicada en la nube (Render):       https://nosql-backup-strategy-d819.onrender.com
 5. Video (YouTube / TikTok / Facebook):     PEGAR_ENLACE_VIDEO
