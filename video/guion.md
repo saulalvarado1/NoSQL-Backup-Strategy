@@ -22,7 +22,7 @@ Estrategia de backup para MongoDB (NoSQL): backups EJSON con checksum, verificac
 cifrado AES-256, retención y despliegue continuo con GitHub Actions + Render + MongoDB Atlas.
 
 Artículo: <ENLACE_ARTICULO>
-Repositorio: <ENLACE_REPO>
+Repositorio: https://github.com/saulalvarado1/NoSQL-Backup-Strategy
 App: <ENLACE_APP>
 ```
 
