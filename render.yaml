@@ -1,0 +1,19 @@
+# Blueprint de Render (https://render.com) — infraestructura como código.
+# Las variables marcadas con sync: false se ingresan en el panel de Render.
+services:
+  - type: web
+    name: nosql-backup-strategy
+    runtime: docker
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    autoDeploy: false   # el despliegue lo dispara GitHub Actions tras pasar las pruebas
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: DB_NAME
+        value: tienda
+      - key: ADMIN_TOKEN
+        generateValue: true
+      - key: BACKUP_DIR
+        value: /tmp/backups

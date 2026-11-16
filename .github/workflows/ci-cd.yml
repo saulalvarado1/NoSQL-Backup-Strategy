@@ -1,0 +1,61 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  pruebas:
+    name: Pruebas (backup y restore)
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:7
+        ports: ["27017:27017"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm test
+        env:
+          MONGODB_URI: mongodb://localhost:27017
+
+  imagen:
+    name: Construir imagen Docker
+    needs: pruebas
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t nosql-backup-strategy:${{ github.sha }} .
+
+  desplegar:
+    name: Desplegar en Render
+    needs: imagen
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: produccion
+    steps:
+      - name: Disparar deploy hook de Render
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK" ]; then
+            echo "::error::Falta el secret RENDER_DEPLOY_HOOK"; exit 1
+          fi
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK"
+      - name: Esperar a que la app responda
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+        run: |
+          if [ -z "$APP_URL" ]; then echo "Variable APP_URL no definida, se omite"; exit 0; fi
+          sleep 30
+          for i in $(seq 1 30); do
+            if curl -fsS "$APP_URL/health"; then echo; echo "Despliegue verificado"; exit 0; fi
+            sleep 10
+          done
+          echo "::error::La app no respondió en $APP_URL/health"; exit 1

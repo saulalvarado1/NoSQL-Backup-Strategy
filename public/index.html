@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NoSQL Backup Strategy · Demo</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 860px; margin: 2rem auto; padding: 0 1rem; color: #1f2933; }
+    h1 { margin-bottom: .2rem; }
+    .sub { color: #52606d; margin-top: 0; }
+    form, .panel { display: flex; gap: .5rem; flex-wrap: wrap; margin: 1rem 0; }
+    input, button { padding: .5rem .7rem; font-size: 1rem; }
+    button { cursor: pointer; background: #00684a; color: #fff; border: 0; border-radius: 4px; }
+    button.sec { background: #3e4c59; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: .45rem; border-bottom: 1px solid #e4e7eb; }
+    pre { background: #f5f7fa; padding: .8rem; overflow: auto; max-height: 300px; }
+    .estado { font-size: .9rem; }
+  </style>
+</head>
+<body>
+  <h1>Tienda NoSQL</h1>
+  <p class="sub">Demo de estrategia de backup para MongoDB · <span id="salud" class="estado">verificando…</span></p>
+
+  <form id="form">
+    <input name="nombre" placeholder="Nombre" required />
+    <input name="precio" type="number" step="0.01" placeholder="Precio" />
+    <input name="stock" type="number" placeholder="Stock" />
+    <button>Agregar producto</button>
+  </form>
+
+  <table>
+    <thead><tr><th>Producto</th><th>Precio</th><th>Stock</th><th></th></tr></thead>
+    <tbody id="lista"></tbody>
+  </table>
+
+  <h2>Backups</h2>
+  <div class="panel">
+    <input id="token" type="password" placeholder="Token de administrador" />
+    <button class="sec" id="listar">Listar backups</button>
+    <button id="crear">Crear backup ahora</button>
+  </div>
+  <pre id="backups">—</pre>
+
+<script>
+const $ = (s) => document.querySelector(s);
+
+async function salud() {
+  const r = await fetch('/health').then((r) => r.json()).catch(() => ({ estado: 'error' }));
+  $('#salud').textContent = r.estado === 'ok' ? '🟢 base de datos conectada' : '🔴 sin conexión a la base de datos';
+}
+
+async function cargar() {
+  const productos = await fetch('/api/productos').then((r) => r.json());
+  $('#lista').innerHTML = '';
+  for (const p of productos) {
+    const tr = document.createElement('tr');
+    for (const v of [p.nombre, 'S/ ' + Number(p.precio).toFixed(2), p.stock]) {
+      const td = document.createElement('td'); td.textContent = v; tr.appendChild(td);
+    }
+    const td = document.createElement('td');
+    const b = document.createElement('button'); b.textContent = 'Eliminar'; b.className = 'sec';
+    b.onclick = async () => { await fetch('/api/productos/' + p._id, { method: 'DELETE' }); cargar(); };
+    td.appendChild(b); tr.appendChild(td);
+    $('#lista').appendChild(tr);
+  }
+}
+
+$('#form').onsubmit = async (e) => {
+  e.preventDefault();
+  const datos = Object.fromEntries(new FormData(e.target));
+  await fetch('/api/productos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(datos) });
+  e.target.reset();
+  cargar();
+};
+
+async function backups(metodo) {
+  const r = await fetch('/api/backups', { method: metodo, headers: { 'x-admin-token': $('#token').value } });
+  $('#backups').textContent = JSON.stringify(await r.json(), null, 2);
+}
+$('#listar').onclick = () => backups('GET');
+$('#crear').onclick = () => backups('POST');
+
+salud();
+cargar();
+</script>
+</body>
+</html>

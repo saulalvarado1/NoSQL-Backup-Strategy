@@ -1,0 +1,64 @@
+name: Backup programado de MongoDB
+
+on:
+  schedule:
+    - cron: "0 5 * * *"   # todos los días a las 05:00 UTC (00:00 en Perú)
+  workflow_dispatch:
+
+jobs:
+  backup:
+    name: Backup lógico + verificación por restauración
+    runs-on: ubuntu-latest
+    services:
+      # Base temporal donde se prueba que el backup realmente se puede restaurar
+      mongo-verificacion:
+        image: mongo:7
+        ports: ["27018:27017"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      - name: 1. Backup de la base de producción (MongoDB Atlas)
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          DB_NAME: tienda
+        run: node scripts/backup.js ./backups 1
+
+      - name: 2. Verificar restaurando en una base temporal
+        env:
+          MONGODB_URI: mongodb://localhost:27018
+          DB_NAME: verificacion
+        run: node scripts/restore.js
+
+      - name: 3. Cifrar el backup (AES-256)
+        env:
+          BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+        run: |
+          NOMBRE=$(ls backups)
+          tar -czf "backup-$NOMBRE.tar.gz" -C backups "$NOMBRE"
+          if [ -n "$BACKUP_PASSPHRASE" ]; then
+            openssl enc -aes-256-cbc -pbkdf2 -salt -in "backup-$NOMBRE.tar.gz" \
+              -out "backup-$NOMBRE.tar.gz.enc" -pass env:BACKUP_PASSPHRASE
+            rm "backup-$NOMBRE.tar.gz"
+          else
+            echo "::warning::BACKUP_PASSPHRASE no definido; el backup se guarda sin cifrar"
+          fi
+          echo "NOMBRE=$NOMBRE" >> "$GITHUB_ENV"
+
+      - name: 4. Guardar copia fuera del proveedor de la base (artefacto con retención)
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-mongodb-${{ env.NOMBRE }}
+          path: backup-*.tar.gz*
+          retention-days: 30
+
+      - name: Resumen
+        run: |
+          echo "### Backup ${{ env.NOMBRE }} ✅" >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          cat backups/*/metadata.json >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
